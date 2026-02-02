@@ -33,11 +33,12 @@ def search_for_student(db):
     '''
     choice = input("Enter student name or ID number: ")
     try: # we need to convert the id number to int, and we can use this to decide id or name.
+        print(choice)
         choice = int(choice)
         query = '''
                 SELECT s.department_id, s.name, d.name
                 FROM Students s JOIN Department d
-                ON s.id=d.id
+                ON s.department_id=d.id
                 WHERE s.id=?
                 '''
     except:
@@ -53,10 +54,11 @@ def search_for_student(db):
     # we can then fetch our result from the cursor
     # this gives us the row as a tuple
     student = cursor.fetchone()
+    print(student)
 
     # and we ensure that we did find a result.
     if student:
-        print(f"ID: {student[0]}\tName: {student[1]}\tDepartment: {student[2]}")
+        print(f"dept ID: {student[0]}\tName: {student[1]}\tDepartment: {student[2]}")
     else:
         print(f"Student {choice} not found.")
 
@@ -72,7 +74,7 @@ def view_dept(db):
     cursor = db.execute(query)
     # where we know we should have multiple results, we can iterate over the cursor.
     for dept in cursor:
-        print(f"ID: {dept[0]}\tName: {dept[1]}")
+        print(f"dept ID: {dept[0]}\tName: {dept[1]}")
 
 def view_courses(db):
     '''
