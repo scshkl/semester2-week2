@@ -33,7 +33,7 @@ def search_for_student(db):
     '''
     choice = input("Enter student name or ID number: ")
     try: # we need to convert the id number to int, and we can use this to decide id or name.
-        print(choice)
+      #  print(choice)
         choice = int(choice)
         query = '''
                 SELECT s.department_id, s.name, d.name
@@ -117,7 +117,15 @@ def review_student_numbers(db):
     Print the number of students registered for each course.    
     :param db: Database object to query
     '''
-    pass
+    query = '''
+        SELECT c.id, c.name, COUNT(sc.student_id) As TotalStudent FROM
+        Courses c LEFT JOIN StudentCourses sc
+        ON c.id=sc.course_id
+        GROUP BY c.id, c.name;
+        '''
+    cursor = db.execute(query)
+    for each in cursor:
+        print(f"Course ID: {each['id']}\t Course Name: {each['name']}\tTotal Registered student: {each['TotalStudent']}")
 
 def main():
 

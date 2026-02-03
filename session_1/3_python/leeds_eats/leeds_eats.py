@@ -5,19 +5,45 @@ import sqlite3
 # ==================================================
 
 def total_customers(conn):
-    pass
-
+    query = '''
+        SELECT COUNT(*) As 'TotalCustomer' FROM customers;
+        '''
+    cursor = conn.execute(query)
+    data = cursor.fetchone()
+    print(f"\nTotal Customer: {data['TotalCustomer']}")
 
 def customer_signup_range(conn):
-    pass
+    # Show the earliest and latest customer signup dates.
+    query = '''
+        SELECT MIN(signup_date) As 'earliest', MAX(signup_date) As 'latest' FROM customers;
+        '''
+    cursor = conn.execute(query)
+    data = cursor.fetchone()
+    print(f"\nEarliest sign up customer: {data['earliest']}, latest signup customer: {data['latest']}")
 
 
 def order_summary_stats(conn):
-    pass
-
+    # - total number of orders
+    # - average order value
+    # - highest and lowest order totals
+    query = '''
+        SELECT COUNT(order_id) As 'total_order', AVG(order_total) As 'avg_value',
+        MAX(order_total) As 'highest_total', MIN(order_total) As 'lowest_total' FROM orders;
+        '''
+    cursor = conn.execute(query)
+    data = cursor.fetchone()
+    print(f"\nTotal order: {data['total_order']}, average order value: {data['avg_value']}")
+    print(f"Highest order total: {data['highest_total']}, lowest order total: {data['lowest_total']}")
 
 def driver_summary(conn):
-    pass
+    # Display the total number of drivers and their hire dates.
+    query = '''
+        SELECT COUNT(driver_id) As 'total_driver', MIN(hire_date) as 'earliest_driver',
+        MAX(hire_date) As 'newest_driver' FROM drivers;
+        '''
+    cursor = conn.execute(query)
+    data = cursor.fetchone()
+    print(f"\nTotal driver: {data['total_driver']}, earliest hire: {data['earliest_driver']}, latest hire: {data['newest_driver']}")
 
 
 # ==================================================
@@ -25,15 +51,55 @@ def driver_summary(conn):
 # ==================================================
 
 def orders_per_customer(conn):
-    pass
-
+    # - Customer name
+    # - Number of orders
+    # - Total amount spent
+    query = '''
+        SELECT c.customer_name, COUNT(od.order_id) As 'total_order', SUM(od.order_total) as 'amount_spent'
+        FROM customers c
+        LEFT JOIN orders od ON c.customer_id=od.customer_id
+        GROUP BY c.customer_name;
+        '''
+    cursor = conn.execute(query)
+    
+    for cust in cursor:
+        print(f"{cust['customer_name']}: total order:{cust['total_order']}, amout spent: {cust['amount_spent']}")
 
 def driver_workload(conn):
-    pass
+    # - Driver name
+    # - Number of deliveries completed
 
+    query = '''
+        SELECT d.driver_name, COUNT(dl.delivery_id) As 'total_delivery'
+        FROM drivers d
+        LEFT JOIN deliveries dl ON d.driver_id=dl.driver_id
+        GROUP BY d.driver_name;
+        '''
+    cursor = conn.execute(query)
+    print()
+    for driver in cursor:
+        print(f"{driver['driver_name']} - total deliveries: {driver['total_delivery']}")
 
 def delivery_lookup_by_id(conn, order_id):
-    pass
+    # - search for an order by ID
+    # - customer name
+    # - order total
+    # - delivery date
+    # - driver
+    query = '''
+        SELECT c.customer_name, od.order_total, dl.delivery_date, d.driver_name
+        FROM orders od JOIN customers c ON od.customer_id=c.customer_id
+        JOIN deliveries dl ON od.order_id=dl.order_id
+        JOIN drivers d ON dl.driver_id=d.driver_id;
+        '''
+    cursor = conn.execute(query)
+    data = cursor.fetchone()
+    print()
+    if data:
+        print(f"{data['customer_name']}: order total: {data['order_total']}, delivery date: {data['delivery_date']}, driver:{data['driver_name']} ")
+    else:
+        print("lookup failed: not found")
+
 
 
 # ==================================================
@@ -41,14 +107,17 @@ def delivery_lookup_by_id(conn, order_id):
 # ==================================================
 
 def orders_per_date(conn):
+    # Count the number of orders per order date.
     pass
 
 
 def deliveries_per_date(conn):
+    # Count the number of deliveries per delivery date.
     pass
 
 
 def customer_signups_per_month(conn):
+    # Count customer signups per month - you may need to do some python processing on this one!
     pass
 
 
@@ -57,14 +126,17 @@ def customer_signups_per_month(conn):
 # ==================================================
 
 def top_customers_by_spend(conn, limit=5):
+    # List the top 5 customers by total spend.
     pass
 
 
 def rank_drivers_by_deliveries(conn):
+    # Rank drivers by number of deliveries completed.
     pass
 
 
 def high_value_orders(conn, threshold):
+    # Display all orders above a value which should be inputted by the user (e.g. £100)
     pass
 
 
