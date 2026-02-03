@@ -70,11 +70,20 @@ def total_order_per_product_category(db):
             GROUP BY p.category
             ORDER BY quantity DESC;"""
     cursor = db.execute(query)
-    for product in cursor:
-        print(f"{product['category']} - total order:{product['quantity']}")
-    
-    # todo - plot bar chart
+    data = dict(cursor)
+    for idx, item in data.items():
+        print(f"{idx} - total order:{item}")
 
+    return data
+
+def plot_order_per_product(data):
+    df = pd.DataFrame.from_dict(data.items())
+    plt.bar(df[0], df[1])
+    plt.xticks(rotation=90) # need to add x label and ylabel
+    plt.title("Total order per product category")
+    plt.xlabel("Product category")
+    plt.ylabel("Total order")
+    plt.show()
 
 def average_product_per_order(db):
     # Calculate **average number of products per order**
@@ -99,20 +108,63 @@ def delivery_status(db):
     for idx, item in data.items():
         print(f"{idx}:{item}")
 
-    # todo - check why it does not work if run the whole file
-    # error to do with deliveries table?
-    plot_delivery_status(data)
+    return data
 
 def plot_delivery_status(data):
-    data = {'delivered': 60, 'failed': 56, 'scheduled': 4}
     df = pd.DataFrame.from_dict(data.items())
     plt.pie(df[1], labels=df[0], autopct='%1.1f%%', startangle=90)
     plt.show()
 
 
-
 # ==================================== Level 3 =======================================
+def top_10_products(db):
+    # List the **top 10 most popular products** by quantity sold. 
+    query = """SELECT p.name, SUM(oi.quantity) as 'total' FROM products p
+            JOIN order_items oi ON oi.product_id=p.product_id
+            GROUP BY p.name
+            ORDER BY total DESC LIMIT 10;"""
+    cursor = db.execute(query)
+    for data in cursor:
+        print(f"{data['name']}:{data['total']}")
 
+def total_revenue_per_category(db):
+    # Compute **total revenue per category** and visualize as a bar chart or pie chart.  
+    query = """SELECT p.category, SUM(oi.quantity*oi.unit_price) as 'revenue' FROM products p
+            JOIN order_items oi ON oi.product_id=p.product_id
+            GROUP BY p.category;"""
+    cursor = db.execute(query)
+    data = dict(cursor)
+    for idx, item in data.items():
+        print(f"{idx}:{item}")
+    
+    return data
+
+def plot_revenue_per_category(data):
+    df = pd.DataFrame.from_dict(data.items())
+    plt.bar(df[0], df[1])
+    plt.xticks(rotation=90)   # need to add x label and ylabel
+    plt.title("Total revenue per product category")
+    plt.xlabel("Product category")
+    plt.ylabel("Revenue")
+    plt.show()
+
+def order_per_delivery_time_window(db):
+    # Count **orders per delivery time window** and visualize busiest slots
+    pass
+
+def top_customer_by_average_order_value(db):
+    # Identify **top customers by average order value**. 
+    pass
+
+def delivery_performance_by_time_window(db):
+    # Compute **delivery performance by time window**: number of delivered vs failed orders per slot.
+    pass
+
+# ==================================== Level 4 =======================================
+    # Find **customers with more than one order** and compute repeat purchase rate.  
+    # Determine **category co-occurrence**: which product categories are frequently ordered together? Visualise as a heatmap.  
+    # Identify **delivery performance by customer**: proportion of delivered vs failed orders per customer.  
+    # Forecast **expected revenue for the next 7 days** based on the past month’s orders.
 
 def main():
 
@@ -125,11 +177,16 @@ def main():
 
     # level 2
     # top_five_customers(db)
-    # total_order_per_product_category(db)
-    average_product_per_order(db)
-    # delivery_status(db)
+    # data = total_order_per_product_category(db)
+    # plot_order_per_product(data)
+    # average_product_per_order(db)
+    # data = delivery_status(db)
+    # plot_delivery_status(data)
 
     # level 3
+    # top_10_products(db)
+    # data = total_revenue_per_category(db)
+    # plot_revenue_per_category(data)
     db.close()
 
 
