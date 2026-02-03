@@ -142,7 +142,7 @@ def total_revenue_per_category(db):
 def plot_revenue_per_category(data):
     df = pd.DataFrame.from_dict(data.items())
     plt.bar(df[0], df[1])
-    plt.xticks(rotation=90)   # need to add x label and ylabel
+    plt.xticks(rotation=90)
     plt.title("Total revenue per product category")
     plt.xlabel("Product category")
     plt.ylabel("Revenue")
@@ -150,11 +150,35 @@ def plot_revenue_per_category(data):
 
 def order_per_delivery_time_window(db):
     # Count **orders per delivery time window** and visualize busiest slots
-    pass
+    query = """SELECT d.delivery_window, COUNT(od.order_id) as 'total' FROM deliveries d
+            JOIN orders od ON d.order_id=od.order_id
+            GROUP BY d.delivery_window
+            ORDER BY total DESC;"""
+    cursor = db.execute(query)
+    data = dict(cursor)
+    for idx, item in data.items():
+        print(f"{idx}- total order:{item}")
+    
+    return data
+
+def plot_busiest_slot(data):
+    df = pd.DataFrame.from_dict(data.items())
+    plt.bar(df[0], df[1])
+    plt.xticks(rotation=90)
+    plt.title("Total order per delivery time window")
+    plt.xlabel("delivery time window")
+    plt.ylabel("total order")
+    plt.show()
 
 def top_customer_by_average_order_value(db):
     # Identify **top customers by average order value**. 
-    pass
+    query = """SELECT c.first_name, c.last_name, AVG(od.total_amount) as 'avg_amount' FROM orders od
+            JOIN customers c ON od.customer_id=c.customer_id
+            GROUP BY c.first_name, c.last_name
+            ORDER BY avg_amount DESC LIMIT 10;"""
+    cursor = db.execute(query)
+    for data in cursor:
+        print(f"{data['first_name']} {data['last_name']}: average order value: {data['avg_amount']}")
 
 def delivery_performance_by_time_window(db):
     # Compute **delivery performance by time window**: number of delivered vs failed orders per slot.
@@ -187,6 +211,10 @@ def main():
     # top_10_products(db)
     # data = total_revenue_per_category(db)
     # plot_revenue_per_category(data)
+    # data = order_per_delivery_time_window(db)
+    # plot_busiest_slot(data)
+    top_customer_by_average_order_value(db)
+
     db.close()
 
 
