@@ -182,10 +182,28 @@ def top_customer_by_average_order_value(db):
 
 def delivery_performance_by_time_window(db):
     # Compute **delivery performance by time window**: number of delivered vs failed orders per slot.
-    pass
+    query = """SELECT d.delivery_window, d.delivery_status, COUNT(od.order_id) As 'total' FROM deliveries d
+            JOIN orders od ON d.order_id=od.order_id
+            WHERE d.delivery_status IN ('delivered','failed')
+            GROUP BY d.delivery_window, d.delivery_status;"""
+    cursor = db.execute(query)
+    for data in cursor:
+        print(f"{data['delivery_window']}, {data['delivery_status']}: {data['total']}")
+    
 
 # ==================================== Level 4 =======================================
-    # Find **customers with more than one order** and compute repeat purchase rate.  
+def customer_with_repeat_order(db):
+    # Find **customers with more than one order** and compute repeat purchase rate
+    query = """SELECT c.customer_id, COUNT(od.order_id) As 'total_order' FROM customers c
+            JOIN orders od ON c.customer_id=od.customer_id
+            GROUP BY customer_id
+            HAVING total_order>1"""
+    cursor = db.execute(query)
+    for data in cursor:
+        print(f"{data['first_name']} {data['last_name']}: {data['total_order']}")
+
+    # todo: need to work out repeat purchase rate
+
     # Determine **category co-occurrence**: which product categories are frequently ordered together? Visualise as a heatmap.  
     # Identify **delivery performance by customer**: proportion of delivered vs failed orders per customer.  
     # Forecast **expected revenue for the next 7 days** based on the past month’s orders.
@@ -213,7 +231,9 @@ def main():
     # plot_revenue_per_category(data)
     # data = order_per_delivery_time_window(db)
     # plot_busiest_slot(data)
-    top_customer_by_average_order_value(db)
+    # top_customer_by_average_order_value(db)
+    # delivery_performance_by_time_window(db)
+    customer_with_repeat_order(db)
 
     db.close()
 
