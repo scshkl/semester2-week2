@@ -194,15 +194,24 @@ def delivery_performance_by_time_window(db):
 # ==================================== Level 4 =======================================
 def customer_with_repeat_order(db):
     # Find **customers with more than one order** and compute repeat purchase rate
-    query = """SELECT c.customer_id, COUNT(od.order_id) As 'total_order' FROM customers c
+    query = """SELECT ta.customer_id, ta.total_order, tb.total_product, tb.distinct_product, 
+            (tb.distinct_product*100/tb.total_product) as 'repeat_purchase_rate'
+            FROM (SELECT c.customer_id, COUNT(od.order_id) As 'total_order' FROM customers c
             JOIN orders od ON c.customer_id=od.customer_id
-            GROUP BY customer_id
-            HAVING total_order>1"""
+            GROUP BY c.customer_id
+            HAVING total_order>1) as ta
+            JOIN 
+            (SELECT c.customer_id, COUNT(oi.product_id) As "total_product", COUNT(DISTINCT(oi.product_id)) As 'distinct_product'
+            FROM customers c JOIN orders od ON c.customer_id=od.customer_id
+            JOIN order_items oi ON od.order_id=oi.order_id
+            GROUP BY c.customer_id) as tb 
+            ON ta.customer_id=tb.customer_id;
+            """
+    # assume purchase rate is calculated based on orders for disticnt_product/total_product
     cursor = db.execute(query)
     for data in cursor:
-        print(f"{data['first_name']} {data['last_name']}: {data['total_order']}")
-
-    # todo: need to work out repeat purchase rate
+        print(f"customer id: {data['customer_id']}: total order {data['total_order']},"
+                f"distinct product:{data['distinct_product']}, total product:{data['total_product']}, repeat rate:{data['repeat_purchase_rate']}")
 
     # Determine **category co-occurrence**: which product categories are frequently ordered together? Visualise as a heatmap.  
     # Identify **delivery performance by customer**: proportion of delivered vs failed orders per customer.  
